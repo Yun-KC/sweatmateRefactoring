@@ -19,17 +19,41 @@ const {
 } = require("../config");
 const emailForm = require("../views/emailFormat");
 const guestTable = {};
+// 리팩터링(1)
+const { checkNickname, checkEmail } = require("../services/auth/auth.service");
+//
 module.exports = {
   validNickname: async (req, res) => {
-    return res.status(200).json({ message: "Valid nickname" });
+    const nickname = req.params.nickname;
+    const isNicknameExist = await checkNickname(nickname);
+    if (isNicknameExist) {
+      return res.status(400).json({ message: `${nickname} already exists` });
+    } else {
+      return res.status(200).json({ message: "Valid nickname" });
+    }
   },
   validEmail: async (req, res) => {
-    return res.status(200).json({ message: "Valid Email" });
+    const email = req.params.email;
+    const isEmailExist = await checkEmail(email);
+    if (isEmailExist) {
+      return res.status(400).json({ message: `${email} already exists` });
+    } else {
+      return res.status(200).json({ message: "Valid Email" });
+    }
   },
+
   signup: async (req, res) => {
     const { email, password, nickname } = req.body;
     if (!(email && password && nickname)) {
       return res.status(400).json({ message: "Incorrect format" });
+    }
+    const isEmailExist = await checkEmail(email);
+    if (isEmailExist) {
+      return res.status(400).json({ message: `${email} already exists` });
+    }
+    const isNicknameExist = await checkNickname(nickname);
+    if (isNicknameExist) {
+      return res.status(400).json({ message: `${nickname} already exists` });
     }
     const hashed = await bcrypt.hash(password, saltRounds);
     const authKey = Math.random().toString(36).slice(2);
