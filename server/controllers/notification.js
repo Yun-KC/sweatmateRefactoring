@@ -1,6 +1,6 @@
 const noticeModel = require("../schemas/notification");
 
-//회원가입시 유저의 몽고디비 테이블이 없다면 에러를 일으킴
+// 회원가입시 유저의 몽고디비 테이블이 없다면 에러를 일으킴
 module.exports = {
   getNotifications: async (req, res) => {
     const { userId } = res.locals;
