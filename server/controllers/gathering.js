@@ -54,7 +54,7 @@ module.exports = {
     const { userId, setGatheringInfo, sportInfo } = res.locals;
     try {
       const createdGathering = await createGathering(setGatheringInfo, userId);
-      const { id, creator, title, sportName, sportEmoji } = createdGathering[0];
+      const { id, creator, title } = createdGathering[0];
       // mongoDB chat 세팅
       // TODO: 유저 관리 객체에 만들어진 게더링 추가 + 만든 유저의 상태도 0 으로 자동 추가
       const setChatInfo = { _id: id, chatInfo: { title, ...sportInfo }, creatorId: creator.id };
@@ -141,7 +141,6 @@ module.exports = {
       }
       const _id = mongoose.Types.ObjectId();
       const main = req.app.get("main");
-      const chat = req.app.get("chat");
       const noticeInfo = {
         id: _id,
         gatheringId: gatheringId,

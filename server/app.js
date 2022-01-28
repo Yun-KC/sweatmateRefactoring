@@ -35,6 +35,68 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static("public"));
 
+// // test;
+const { User, Gathering, User_gathering } = require("./models");
+// const sequelize = require("sequelize");
+const {
+  ModifyTheCurrentNumOfGathering,
+  findOneUser,
+  getGatheringIdsByUser,
+} = require("./controllers/functions/sequelize");
+const { dropUser, deleteImageinTable } = require("./controllers/functions/utility");
+const { Sequelize, DataTypes, Model } = require("sequelize");
+
+app.use(async function (req, res) {
+  const test = sequelize.define("test", {
+    username: {
+      type: DataTypes.STRING,
+      get() {
+        const rawValue = this.getDataValue("username");
+        return rawValue ? rawValue.toUpperCase() : null;
+      },
+    },
+  });
+  console.log(test);
+  const user = test.build({ username: "SuperUser123" });
+  console.log(user.username); // 'SUPERUSER123'
+  console.log(user.getDataValue("username")); // 'SuperUser123'
+  // const a = await User_gathering.findOne({
+  //   include: { model: User },
+  //   raw: true,
+  //   nest: true,
+  // });
+  // console.log(a);
+  // const date = new Date();
+  // date.setHours(date.getHours() - 15);
+  // const unidentifiedUsers = await User.findAll({
+  //   where: { type: "local", authStatus: 0, createdAt: { [Op.lte]: date } },
+  //   attributes: ["id"],
+  // });
+  // unidentifiedUsers.forEach((el) => {
+  //   el.destroy();
+  // });
+  // // 게스트 유저 정보 삭제
+
+  // date.setHours(date.getHours() + 12);
+  // const guestUsers = await User.findAll({
+  //   where: { type: "guest", createdAt: { [Op.lte]: date } },
+  //   attributes: ["id", "image"],
+  // });
+  // console.log(date);
+  // guestUsers.forEach(async (el) => {
+  //   const { id: userId, image } = el.dataValues;
+  //   console.log(el);
+  //   await dropUser(userId, { app });
+  //   deleteImageinTable(image);
+  //   const gatheringIds = await getGatheringIdsByUser(userId);
+  //   await el.destroy();
+  //   await ModifyTheCurrentNumOfGathering(gatheringIds);
+  // });
+
+  res.status(200).send("무야호");
+});
+// //test
+
 app.get("/", (req, res) => {
   res.send("Let's Sweatmate!");
 });

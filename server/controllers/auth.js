@@ -63,7 +63,7 @@ module.exports = {
       const token = generateAccessToken(userInfo.dataValues.id, userInfo.dataValues.type);
       setCookie(res, token);
 
-      //유저 노티피케이션 테이블 생성 부분
+      // 유저 노티피케이션 테이블 생성 부분
       const { id } = userInfo.dataValues;
       noticeModel.signup(id);
 
@@ -107,17 +107,17 @@ module.exports = {
         const setTimeOutId = guestTable[userId];
         clearTimeout(setTimeOutId);
         guestTable[userId] = setTimeout(async () => {
-          //TODO: 해당 유저의 Mongo notification도 같이 삭제
-          //TODO: 이 유저가 만든 게더링이 모두 삭제되기 때문에 삭제 알림 이벤트 추가
+          // TODO: 해당 유저의 Mongo notification도 같이 삭제
+          // TODO: 이 유저가 만든 게더링이 모두 삭제되기 때문에 삭제 알림 이벤트 추가
           await dropUser(userId, req);
-          //s3탈퇴한 유저의 image 삭제
+          // s3탈퇴한 유저의 image 삭제
           deleteImageinTable(image);
           delete guestTable[userId];
           const gatheringIds = await getGatheringIdsByUser(userId);
           await userInfo.destroy();
           await ModifyTheCurrentNumOfGathering(gatheringIds);
 
-          //회원정보가 삭제된 후에 관련된 모임들 인원수 다시 체크
+          // 회원정보가 삭제된 후에 관련된 모임들 인원수 다시 체크
         }, 7200000);
       }
       return res.status(200).json({ id, image, nickname });
@@ -127,7 +127,7 @@ module.exports = {
   },
   signout: (req, res) => {
     clearCookie(res);
-    //TODO: socket disconnect 이벤트를 발생시켜야함 서버는 연결할때만 토큰검사를 하기 때문에 로그아웃을 했어도 소켓에 연결되어 있을 수도 있음
+    // TODO: socket disconnect 이벤트를 발생시켜야함 서버는 연결할때만 토큰검사를 하기 때문에 로그아웃을 했어도 소켓에 연결되어 있을 수도 있음
     return res.status(200).json({ message: "Signed out" });
   },
   guestSignin: async (req, res) => {
@@ -142,11 +142,11 @@ module.exports = {
     const token = generateAccessToken(guestUser.dataValues.id, guestUser.dataValues.type);
     setCookie(res, token);
     const { id: userId, nickname } = guestUser.dataValues;
-    //몽고디비 notifications 컬렉션에 아이디 추가
+    // 몽고디비 notifications 컬렉션에 아이디 추가
     noticeModel.signup(userId);
     guestTable[userId] = setTimeout(async () => {
-      //TODO: 해당 유저의 Mongo notification도 같이 삭제
-      //TODO: 이 유저가 만든 게더링이 모두 삭제되기 때문에 삭제 알림 이벤트 추가
+      // TODO: 해당 유저의 Mongo notification도 같이 삭제
+      // TODO: 이 유저가 만든 게더링이 모두 삭제되기 때문에 삭제 알림 이벤트 추가
 
       const userInfo = await userFindOne({ id: userId });
       await dropUser(userId, req);
@@ -156,7 +156,7 @@ module.exports = {
       await guestUser.destroy();
       await ModifyTheCurrentNumOfGathering(gatheringIds);
     }, 7200000);
-    //TODO: Mongo notification 생성 + 초기 알림으로 환영메시지 등록
+    // TODO: Mongo notification 생성 + 초기 알림으로 환영메시지 등록
 
     // 게스트로그인에 nickname는 UUID 의 첫 번째, 이미지는 미설정시 null 이기 때문에 null을 추가로 넣어줌
     return res.status(200).json({ id: userId, image: null, nickname });
@@ -212,7 +212,7 @@ module.exports = {
       const { id, type } = createdUserInfo.dataValues;
       const token = generateAccessToken(id, type);
       setCookie(res, token);
-      //Mongo notification 생성 + 초기 알림으로 환영메시지 등록
+      // Mongo notification 생성 + 초기 알림으로 환영메시지 등록
       noticeModel.signup(id);
 
       return res.status(201).json({ id, nickname: notDuplicationNickname, image });
@@ -272,7 +272,7 @@ module.exports = {
       const { id, type } = createdUserInfo.dataValues;
       const token = generateAccessToken(id, type);
       setCookie(res, token);
-      //Mongo notification 생성 + 초기 알림으로 환영메시지 등록
+      // Mongo notification 생성 + 초기 알림으로 환영메시지 등록
       noticeModel.signup(id);
 
       return res.status(201).json({ id, nickname: notDuplicationNickname, image });

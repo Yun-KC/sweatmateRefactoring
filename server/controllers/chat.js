@@ -1,7 +1,6 @@
 const mongooseChatModel = require("../schemas/chat");
 const {
   findGatheringOfUser,
-  userFindOne,
   gatheringFindOne,
   getVaildGatheringId,
 } = require("./functions/sequelize");
@@ -10,7 +9,7 @@ module.exports = {
   getUserChatList: async (req, res) => {
     const { userId } = res.locals;
     try {
-      //유저 아이디로 참여중인 게더링아이디를 찾는 함수입니다.
+      // 저 아이디로 참여중인 게더링아이디를 찾는 함수입니다.
       const usersGatheringIds = await getVaildGatheringId(userId);
 
       // 참여중인 게더링이 없을 경우에 응답입니다.
@@ -64,7 +63,7 @@ module.exports = {
       if (!checkParticipating) {
         return res.status(400).json({ message: "not participating in this gathering" });
       }
-      //채팅의 유저 리스트 (아이디, 닉네임, 이미지)를 불러옵니다.
+      // 채팅의 유저 리스트 (아이디, 닉네임, 이미지)를 불러옵니다.
       const participatingUserList = await Promise.all(
         gatheringListOfUser.map(async (el) => {
           const userInfo = await el.getUser();

@@ -8,6 +8,7 @@ const areaList = require("../../resource/areaList");
 const sportsList = require("../../resource/sportList");
 const areaListById = require("../../resource/areaListById");
 const sportListById = require("../../resource/sportListById");
+
 module.exports = {
   DBERROR: (res, err) => {
     return res.status(500).json({ message: `Error occured in database: ${err}` });
@@ -89,7 +90,7 @@ module.exports = {
     });
   },
   dropUser: async (userId, req) => {
-    //유저의 몽고디비 도큐멘트 삭제
+    // 유저의 몽고디비 도큐멘트 삭제
     await noticeModel.removeUser(userId);
     await chatModel.removeChatOfUser(userId);
 
@@ -115,7 +116,7 @@ module.exports = {
       // 참여중인 (채팅 안밖유저에게 전부 알림이 가야함)
       main.to(id).emit("notice", noticeInfo);
       chat.to(id).emit("notice", noticeInfo);
-      //참여중인 유저가 있다면 방에서 나가게 함
+      // 참여중인 유저가 있다면 방에서 나가게 함
       chat.in(id).disconnectSockets();
       delete realTime[id];
     });
