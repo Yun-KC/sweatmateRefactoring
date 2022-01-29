@@ -122,11 +122,8 @@ module.exports = {
     }
   },
   me: async (req, res) => {
-    const { userId, type } = res.locals;
+    const { id: userId, type, image, nickname } = res.locals.userInfo;
     try {
-      const userInfo = await userFindOne({ id: userId });
-      const { id, image, nickname } = userInfo;
-      // 게스트 유저가 만약 2시간동안 아무런 요청이 없다면 자동으로 관련 정보 삭제
       if (type === "guest") {
         const setTimeOutId = guestTable[userId];
         clearTimeout(setTimeOutId);
@@ -138,13 +135,12 @@ module.exports = {
           deleteImageinTable(image);
           delete guestTable[userId];
           const gatheringIds = await getGatheringIdsByUser(userId);
-          await userInfo.destroy();
+          await res.locals.userInfo.destroy();
           await ModifyTheCurrentNumOfGathering(gatheringIds);
-
           // 회원정보가 삭제된 후에 관련된 모임들 인원수 다시 체크
         }, 7200000);
       }
-      return res.status(200).json({ id, image, nickname });
+      return res.status(200).json({ userId, image, nickname });
     } catch (err) {
       DBERROR(res, err);
     }
