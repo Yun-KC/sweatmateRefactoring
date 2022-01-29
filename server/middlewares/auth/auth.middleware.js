@@ -1,6 +1,6 @@
 const { verifyAccessToken, clearCookie } = require("../../controllers/functions/token");
+const { findOneOfUser } = require("../../services/auth/auth.repository");
 const AUTH_ERROR = { message: "Authentication Error" };
-const { userFindOne } = require("../../controllers/functions/sequelize");
 
 module.exports = {
   validateBodyForSignup: (req, res, next) => {
@@ -15,13 +15,12 @@ module.exports = {
     if (!accessToken) {
       return res.status(403).json(AUTH_ERROR);
     }
-
     const decoded = verifyAccessToken(accessToken);
     if (!decoded) {
       clearCookie(res);
       return res.status(403).json(AUTH_ERROR);
     }
-    const foundUser = await userFindOne({ id: decoded.id });
+    const foundUser = await findOneOfUser({ id: decoded.id });
     if (!foundUser) {
       clearCookie(res);
       return res.status(403).json(AUTH_ERROR);
