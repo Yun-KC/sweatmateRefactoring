@@ -6,7 +6,9 @@ module.exports = {
       [
         body("email").notEmpty().isEmail(),
         body("nickname").notEmpty(),
-        body("password").notEmpty(),
+        body("password")
+          .notEmpty()
+          .matches(/^(?=.*[a-zA-Z])((?=.*\d)|(?=.*\W)).{6,20}$/),
       ],
       (req, res, next) => {
         const errors = validationResult(req);
