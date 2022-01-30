@@ -44,9 +44,7 @@ module.exports = {
 
   signup: async (req, res) => {
     const { email, password, nickname } = req.body;
-    if (!(email && password && nickname)) {
-      return res.status(400).json({ message: "Incorrect format" });
-    }
+
     const isEmailExist = await checkEmail(email);
     if (isEmailExist) {
       return res.status(400).json({ message: `${email} already exists` });
