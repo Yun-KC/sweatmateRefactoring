@@ -1,5 +1,5 @@
 const { verifyAccessToken, clearCookie } = require("../../controllers/functions/token");
-const { findOneOfUser } = require("../../services/auth/auth.repository");
+const { findOneOfUser } = require("../../repositories/auth.repository");
 const AUTH_ERROR = { message: "Authentication Error" };
 
 module.exports = {

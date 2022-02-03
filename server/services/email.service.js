@@ -1,6 +1,9 @@
 const nodemailer = require("nodemailer");
+const emailFormat = require("../views/emailFormat");
+const { googleId, googlePassword } = require("../config").email;
+
 const mailSender = {
-  sendGmail: function (param) {
+  sendGmail: async function ({ email, nickname, subject, authKey }) {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       prot: 587,
@@ -8,19 +11,17 @@ const mailSender = {
       secure: false,
       requireTLS: true,
       auth: {
-        user: process.env.GOOGLE_ID,
-        pass: process.env.GOOGLE_PASSWORD,
+        user: googleId,
+        pass: googlePassword,
       },
     });
-
     const mailOptions = {
-      from: process.env.GOOGLE_ID,
-      to: param.toEmail,
-      subject: param.subject,
-      html: param.html,
+      from: googleId,
+      to: email,
+      subject: subject,
+      html: emailFormat(authKey, nickname),
     };
-
-    transporter.sendMail(mailOptions, function (error, info) {
+    await transporter.sendMail(mailOptions, function (error, info) {
       if (error) {
         console.log(error);
       } else {

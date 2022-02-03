@@ -12,11 +12,11 @@ const swaggerUi = require("swagger-ui-express");
 const YAML = require("yamljs");
 const swaggerDocument = YAML.load("./sweatmate.yaml");
 
-const authRouter = require("./router/auth");
-const userRouter = require("./router/user");
-const gatheringRouter = require("./router/gathering");
-const notificationRouter = require("./router/notification");
-const chatRouter = require("./router/chat");
+const authRouter = require("./routers/auth.router");
+const userRouter = require("./routers/user");
+const gatheringRouter = require("./routers/gathering");
+const notificationRouter = require("./routers/notification");
+const chatRouter = require("./routers/chat");
 const { realTimeUserStatus } = require("./controllers/functions/sequelize");
 const app = express();
 
@@ -57,8 +57,8 @@ const sweatmateServer = app.listen(config.port, async () => {
   try {
     await sequelize.authenticate();
     app.set("realTime", await realTimeUserStatus());
-    SocketIO(sweatmateServer, app);
-    require("./schedule")(app);
+    // SocketIO(sweatmateServer, app); 임시로 꺼둠
+    // require("./schedule")(app); 임시로 꺼둠
     console.log("Connection has been established successfully.");
   } catch (error) {
     console.error("Unable to connect to the database:", error);

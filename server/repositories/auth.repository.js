@@ -1,4 +1,5 @@
-const { User } = require("../../models");
+const { User } = require("../models");
+
 module.exports = {
   // findOneOfUser는 매개변수로 쿼리 목록, 제외할 속성을 매개변수로 받습니다.
   findOneOfUser: async (queries, exclude = []) => {
@@ -6,5 +7,8 @@ module.exports = {
       where: { ...queries },
       attributes: { exclude: [...exclude] },
     });
+  },
+  createUser: async (queries) => {
+    return await User.create(queries);
   },
 };

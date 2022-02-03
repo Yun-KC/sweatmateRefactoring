@@ -41,4 +41,8 @@ module.exports = {
     kakaoClientId: required("KAKAO_CLIENT_ID"),
     kakaoClientSecret: required("KAKAO_CLIENT_SECRET"),
   },
+  email: {
+    googleId: required("GOOGLE_ID"),
+    googlePassword: required("GOOGLE_PASSWORD"),
+  },
 };

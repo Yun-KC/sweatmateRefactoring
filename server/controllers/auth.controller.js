@@ -3,24 +3,22 @@ const { v4: uuid } = require("uuid");
 const axios = require("axios");
 const {
   userFindOne,
-  createUser,
   getUniqueNickname,
   getGatheringIdsByUser,
   ModifyTheCurrentNumOfGathering,
 } = require("./functions/sequelize");
 const noticeModel = require("../schemas/notification");
-const { sendGmail } = require("./functions/mail");
 const { DBERROR, deleteImageinTable, dropUser } = require("./functions/utility");
 const { generateAccessToken, setCookie, clearCookie } = require("./functions/token");
-const {
-  bcrypt: { saltRounds },
-  google,
-  kakao,
-} = require("../config");
-const emailForm = require("../views/emailFormat");
+const { google, kakao } = require("../config");
 const guestTable = {};
 // 리팩터링(1)
-const { checkNickname, checkEmail } = require("../services/auth/auth.service");
+const {
+  checkNickname,
+  checkEmail,
+  createUserAndReturnAuthKey,
+} = require("../services/auth.service");
+const { sendGmail } = require("../services/email.service");
 //
 module.exports = {
   validNickname: async (req, res) => {
@@ -53,28 +51,17 @@ module.exports = {
     if (isNicknameExist) {
       return res.status(400).json({ message: `${nickname} already exists` });
     }
-    const hashed = await bcrypt.hash(password, saltRounds);
-    const authKey = Math.random().toString(36).slice(2);
+    const authKey = await createUserAndReturnAuthKey({ email, password, nickname });
+    if (!authKey) return res.status(500).json({ message: "fail to create user" });
 
-    try {
-      await createUser({
-        id: uuid(),
-        nickname,
-        email,
-        password: hashed,
-        authKey,
-      });
+    sendGmail({
+      email,
+      authKey,
+      nickname,
+      subject: "안녕하세요 Sweatmate입니다.",
+    });
 
-      sendGmail({
-        toEmail: email,
-        subject: "안녕하세요 Sweatmate입니다.",
-        html: emailForm(authKey, nickname), // TODO: html 수정 필요!
-      });
-
-      return res.status(201).json({ message: "1시간 이내에 이메일 인증을 진행해주세요" });
-    } catch (err) {
-      DBERROR(res, err);
-    }
+    return res.status(201).json({ message: "1시간 이내에 이메일 인증을 진행해주세요" });
   },
   certifyEmail: async (req, res) => {
     const { authKey } = req.params;
