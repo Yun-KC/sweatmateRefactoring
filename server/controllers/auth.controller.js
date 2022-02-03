@@ -16,9 +16,11 @@ const guestTable = {};
 const {
   checkNickname,
   checkEmail,
-  createUserAndReturnAuthKey,
+  createUserAndReturnUserinfo,
+  certifyEmailByAuthKey,
 } = require("../services/auth.service");
 const { sendGmail } = require("../services/email.service");
+const { createNotificationOfUser } = require("../repositories/notification.repository");
 //
 module.exports = {
   validNickname: async (req, res) => {
@@ -51,12 +53,11 @@ module.exports = {
     if (isNicknameExist) {
       return res.status(400).json({ message: `${nickname} already exists` });
     }
-    const authKey = await createUserAndReturnAuthKey({ email, password, nickname });
-    if (!authKey) return res.status(500).json({ message: "fail to create user" });
-
+    const userInfo = await createUserAndReturnUserinfo({ email, password, nickname });
+    if (!userInfo) return res.status(500).json({ message: "fail to create user" });
     sendGmail({
       email,
-      authKey,
+      authKey: userInfo.authKey,
       nickname,
       subject: "안녕하세요 Sweatmate입니다.",
     });
@@ -65,21 +66,12 @@ module.exports = {
   },
   certifyEmail: async (req, res) => {
     const { authKey } = req.params;
-    try {
-      const userInfo = await userFindOne({ authKey });
-      if (!userInfo) return res.status(400).send("인증 시간이 초과되었습니다.");
-      userInfo.update({ authStatus: 1, authKey: null });
-      const token = generateAccessToken(userInfo.dataValues.id, userInfo.dataValues.type);
-      setCookie(res, token);
-
-      // 유저 노티피케이션 테이블 생성 부분
-      const { id } = userInfo.dataValues;
-      noticeModel.signup(id);
-
-      return res.redirect(`${process.env.CLIENT_URL}`);
-    } catch (err) {
-      DBERROR(res, err);
-    }
+    const userInfo = await certifyEmailByAuthKey(authKey);
+    if (!userInfo) return res.status(400).send("인증 시간이 초과되었습니다.");
+    const token = generateAccessToken(userInfo.id, userInfo.type);
+    setCookie(res, token);
+    createNotificationOfUser(userInfo.id);
+    return res.redirect(`${process.env.CLIENT_URL}`);
   },
   signin: async (req, res) => {
     const { email, password } = req.body;
@@ -137,7 +129,7 @@ module.exports = {
   },
   guestSignin: async (req, res) => {
     const guestUUID = uuid();
-    const guestUser = await createUser({
+    const guestUser = await createUserAndReturnUserinfo({
       id: guestUUID,
       email: guestUUID,
       nickname: guestUUID.split("-")[0],
@@ -206,7 +198,7 @@ module.exports = {
       // 이 이메일로 가입된 정보가 없다면 정보를 바탕으로 회원가입을 진행
       // 닉네임 중복체크 함수
       const notDuplicationNickname = await getUniqueNickname(nickname);
-      const createdUserInfo = await createUser({
+      const createdUserInfo = await createUserAndReturnUserinfo({
         id: uuid(),
         email,
         image,
@@ -266,7 +258,7 @@ module.exports = {
       // 이 이메일로 가입된 정보가 없다면 정보를 바탕으로 회원가입을 진행
       // 닉네임 중복체크 함수
       const notDuplicationNickname = await getUniqueNickname(nickname);
-      const createdUserInfo = await createUser({
+      const createdUserInfo = await createUserAndReturnUserinfo({
         id: uuid(),
         email,
         nickname: notDuplicationNickname,

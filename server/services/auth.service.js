@@ -1,4 +1,8 @@
-const { findOneOfUser, createUser } = require("../repositories/auth.repository");
+const {
+  findOneOfUser,
+  createUser,
+  updateAuthorizedUser,
+} = require("../repositories/auth.repository");
 const bcrypt = require("bcrypt");
 const { v4: uuid } = require("uuid");
 const { saltRounds } = require("../config").bcrypt;
@@ -20,18 +24,27 @@ module.exports = {
       return false;
     }
   },
-  createUserAndReturnAuthKey: async ({ email, password, nickname }) => {
+  createUserAndReturnUserinfo: async ({ email, password, nickname }) => {
     const hashed = await bcrypt.hash(password, saltRounds);
     const authKey = uuid().split("-").join("");
     try {
-      await createUser({
+      return await createUser({
         id: uuid(),
         nickname,
         email,
         password: hashed,
         authKey,
       });
-      return authKey;
+    } catch (err) {
+      return null;
+    }
+  },
+  certifyEmailByAuthKey: async (authKey) => {
+    try {
+      const userInfo = await findOneOfUser({ authKey });
+      if (!userInfo) return null;
+      await updateAuthorizedUser(userInfo.dataValues.id);
+      return userInfo.dataValues;
     } catch (err) {
       return null;
     }

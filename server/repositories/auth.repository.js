@@ -11,4 +11,7 @@ module.exports = {
   createUser: async (queries) => {
     return await User.create(queries);
   },
+  updateAuthorizedUser: async (userId) => {
+    return await User.update({ authStatus: 1, authKey: null }, { where: { id: userId } });
+  },
 };
