@@ -48,7 +48,7 @@ app.use((req, res) => {
   res.status(400).json({ message: "Invalid request" });
 });
 app.use((err, req, res, next) => {
-  res.status(500).json({ message: `Something went wrong: ${err}` });
+  res.status(err.statusCode).json({ message: err.message });
 });
 
 const sweatmateServer = app.listen(config.port, async () => {
@@ -56,9 +56,9 @@ const sweatmateServer = app.listen(config.port, async () => {
   mongooseConnect();
   try {
     await sequelize.authenticate();
-    app.set("realTime", await realTimeUserStatus());
-    SocketIO(sweatmateServer, app);
-    require("./schedule")(app);
+    // app.set("realTime", await realTimeUserStatus());
+    // SocketIO(sweatmateServer, app);
+    // require("./schedule")(app);
     console.log("Connection has been established successfully.");
   } catch (error) {
     console.error("Unable to connect to the database:", error);

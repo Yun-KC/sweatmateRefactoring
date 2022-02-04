@@ -12,12 +12,13 @@ const { DBERROR, deleteImageinTable, dropUser } = require("./functions/utility")
 const { generateAccessToken, setCookie, clearCookie } = require("./functions/token");
 const { google, kakao } = require("../config");
 const guestTable = {};
-// 리팩터링(1)
+// 리팩터링
 const {
   checkNickname,
   checkEmail,
   createUserAndReturnUserinfo,
   certifyEmailByAuthKey,
+  signin,
 } = require("../services/auth.service");
 const { sendGmail } = require("../services/email.service");
 const { createNotificationOfUser } = require("../repositories/notification.repository");
@@ -75,28 +76,11 @@ module.exports = {
   },
   signin: async (req, res) => {
     const { email, password } = req.body;
-    try {
-      const foundUserByEmail = await userFindOne({ email });
-      if (!foundUserByEmail) {
-        return res.status(401).json({ message: "Invalid email or password" });
-      }
-      if (!foundUserByEmail.dataValues.authStatus) {
-        return res.status(400).json({ message: "Need to verify your email first" });
-      }
-      const isValidPassword = await bcrypt.compare(password, foundUserByEmail.dataValues.password);
-      if (!isValidPassword) {
-        return res.status(401).json({ message: "Invalid email or password" });
-      }
-      const token = generateAccessToken(
-        foundUserByEmail.dataValues.id,
-        foundUserByEmail.dataValues.type
-      );
-      setCookie(res, token);
-      const { id, image, nickname } = foundUserByEmail.dataValues;
-      return res.status(200).json({ id, image, nickname });
-    } catch (err) {
-      DBERROR(res, err);
-    }
+    const userInfo = await signin(email, password);
+    const token = generateAccessToken(userInfo.dataValues.id, userInfo.dataValues.type);
+    setCookie(res, token);
+    const { id, image, nickname } = userInfo.dataValues;
+    return res.status(200).json({ id, image, nickname });
   },
   me: async (req, res) => {
     const { id: userId, type, image, nickname } = res.locals.userInfo;

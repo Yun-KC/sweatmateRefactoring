@@ -17,6 +17,7 @@ const {
 // (3) isAuth의 위치를 auth.middleware로 옮겼습니다.
 // (4) 단순히 body의 인자 유무만 체크하는 방식에서 유효성을 라이브러리를 통해 검사하도록 바꿨습니다.
 // (5) 회원가입에서 컨트롤과 서비스 부분을 분리했습니다. (이메일 인증과 유저 생성 로직을 서비스로);
+// (6) 로그인 기능 컨트롤과 서비스 로직 분리, 예외처리 로직 추가
 const { isAuth } = require("../middlewares/auth/auth.middleware");
 const { validateBodyForSignup } = require("../middlewares/auth/auth.validator");
 router.get("/nickname/:nickname", validNickname); // (1)
