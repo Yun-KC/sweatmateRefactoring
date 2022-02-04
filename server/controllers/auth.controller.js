@@ -26,49 +26,31 @@ const { createNotificationOfUser } = require("../repositories/notification.repos
 module.exports = {
   validNickname: async (req, res) => {
     const nickname = req.params.nickname;
-    const isNicknameExist = await checkNickname(nickname);
-    if (isNicknameExist) {
-      return res.status(400).json({ message: `${nickname} already exists` });
-    } else {
-      return res.status(200).json({ message: "Valid nickname" });
-    }
+    await checkNickname(nickname);
+    return res.status(200).json({ message: "Valid nickname" });
   },
   validEmail: async (req, res) => {
     const email = req.params.email;
-    const isEmailExist = await checkEmail(email);
-    if (isEmailExist) {
-      return res.status(400).json({ message: `${email} already exists` });
-    } else {
-      return res.status(200).json({ message: "Valid Email" });
-    }
+    await checkEmail(email);
+    return res.status(200).json({ message: "Valid Email" });
   },
 
   signup: async (req, res) => {
     const { email, password, nickname } = req.body;
-
-    const isEmailExist = await checkEmail(email);
-    if (isEmailExist) {
-      return res.status(400).json({ message: `${email} already exists` });
-    }
-    const isNicknameExist = await checkNickname(nickname);
-    if (isNicknameExist) {
-      return res.status(400).json({ message: `${nickname} already exists` });
-    }
+    await checkEmail(email);
+    await checkNickname(nickname);
     const userInfo = await createUserAndReturnUserinfo({ email, password, nickname });
-    if (!userInfo) return res.status(500).json({ message: "fail to create user" });
     sendGmail({
       email,
       authKey: userInfo.authKey,
       nickname,
       subject: "안녕하세요 Sweatmate입니다.",
     });
-
     return res.status(201).json({ message: "1시간 이내에 이메일 인증을 진행해주세요" });
   },
   certifyEmail: async (req, res) => {
     const { authKey } = req.params;
     const userInfo = await certifyEmailByAuthKey(authKey);
-    if (!userInfo) return res.status(400).send("인증 시간이 초과되었습니다.");
     const token = generateAccessToken(userInfo.id, userInfo.type);
     setCookie(res, token);
     createNotificationOfUser(userInfo.id);
@@ -81,6 +63,10 @@ module.exports = {
     setCookie(res, token);
     const { id, image, nickname } = userInfo.dataValues;
     return res.status(200).json({ id, image, nickname });
+  },
+  signout: (req, res) => {
+    clearCookie(res);
+    return res.status(200).json({ message: "Signed out" });
   },
   me: async (req, res) => {
     const { id: userId, type, image, nickname } = res.locals.userInfo;
@@ -106,11 +92,7 @@ module.exports = {
       DBERROR(res, err);
     }
   },
-  signout: (req, res) => {
-    clearCookie(res);
-    // TODO: socket disconnect 이벤트를 발생시켜야함 서버는 연결할때만 토큰검사를 하기 때문에 로그아웃을 했어도 소켓에 연결되어 있을 수도 있음
-    return res.status(200).json({ message: "Signed out" });
-  },
+
   guestSignin: async (req, res) => {
     const guestUUID = uuid();
     const guestUser = await createUserAndReturnUserinfo({

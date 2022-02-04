@@ -1,5 +1,5 @@
 module.exports = {
-  createError: ({ message, statusCode }) => {
+  createException: ({ message, statusCode }) => {
     const err = new Error();
     err.message = message;
     err.statusCode = statusCode;

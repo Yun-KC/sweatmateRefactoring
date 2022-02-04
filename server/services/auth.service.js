@@ -6,23 +6,19 @@ const {
 const bcrypt = require("bcrypt");
 const { v4: uuid } = require("uuid");
 const { saltRounds } = require("../config").bcrypt;
-const { createError } = require("../exceptions");
+const { createException } = require("../exceptions");
 
 module.exports = {
   checkNickname: async (nickname) => {
-    const userInfo = await findOneOfUser({ nickname }, []);
+    const userInfo = await findOneOfUser({ nickname });
     if (userInfo) {
-      return true;
-    } else {
-      return false;
+      throw createException({ message: `${nickname} already exists`, statusCode: 400 });
     }
   },
   checkEmail: async (email) => {
-    const userInfo = await findOneOfUser({ email }, []);
+    const userInfo = await findOneOfUser({ email });
     if (userInfo) {
-      return true;
-    } else {
-      return false;
+      throw createException({ message: `${email} already exists`, statusCode: 400 });
     }
   },
   createUserAndReturnUserinfo: async ({ email, password, nickname }) => {
@@ -37,30 +33,28 @@ module.exports = {
         authKey,
       });
     } catch {
-      return null;
+      throw createException({ message: "Fail to create user", statusCode: 500 });
     }
   },
   certifyEmailByAuthKey: async (authKey) => {
-    try {
-      const userInfo = await findOneOfUser({ authKey });
-      if (!userInfo) return null;
-      await updateAuthorizedUser(userInfo.dataValues.id);
-      return userInfo.dataValues;
-    } catch {
-      return null;
+    const userInfo = await findOneOfUser({ authKey });
+    if (!userInfo) {
+      throw createException({ message: "인증 시간이 초과되었습니다.", statusCode: 400 });
     }
+    await updateAuthorizedUser(userInfo.dataValues.id);
+    return userInfo.dataValues;
   },
   signin: async (email, password) => {
     const userInfo = await findOneOfUser({ email });
     if (!userInfo) {
-      throw createError({ message: "Invalid email or password", statusCode: 401 });
+      throw createException({ message: "Invalid email or password", statusCode: 401 });
     }
     if (!userInfo.dataValues.authStatus) {
-      throw createError({ message: "Need to verify your email first", statusCode: 400 });
+      throw createException({ message: "Need to verify your email first", statusCode: 400 });
     }
     const isValidPassword = await bcrypt.compare(password, userInfo.dataValues.password);
     if (!isValidPassword) {
-      throw createError({ message: "Invalid email or password", statusCode: 401 });
+      throw createException({ message: "Invalid email or password", statusCode: 401 });
     }
     return userInfo;
   },
